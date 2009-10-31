@@ -5,3 +5,8 @@ logs/
 .svn
 bin/
 eggs/
+develop-eggs/
+.installed.cfg
+parts/
+downloads/
+src/django_rowperm.egg-info/
