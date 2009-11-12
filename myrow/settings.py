@@ -44,13 +44,24 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'myrow.urls'
 
+SITE_ID = 1
 
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
+    'rowperm',
+    'myrow.gallery',
 )
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+        "django.core.context_processors.auth",
+        "django.core.context_processors.i18n",
+        "django.core.context_processors.request",
+        "django.core.context_processors.media",
+        )
+
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
