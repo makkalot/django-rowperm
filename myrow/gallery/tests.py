@@ -233,5 +233,16 @@ True
 >>> custom_perm.can('not_custom',custom_gallery)
 True
 
+#lets change the model of the custom_perm to see what happens
+>>> custom_perm.model = Picture
+>>> custom_perm.has_user_perms('not_custom',custom_gallery)
+[]
+>>> custom_perm.has_perm('not_custom',custom_gallery)
+False
+>>> custom_perm.can('not_custom',custom_gallery)
+False
+>>> custom_perm.model = Gallery
+
+
 #----------------------------------------------------------------------------------------------------
 """
