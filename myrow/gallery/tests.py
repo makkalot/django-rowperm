@@ -17,7 +17,6 @@
 >>> from rowperm.models import *
 
 >>> ri = RoleItem(role=moderator_role,content_object=makkalot)
-
 >>> ri.save()
 >>> ri
 <RoleItem: Moderator Role-user>
@@ -103,6 +102,7 @@ True
 >>> RowPermission.objects.all().count()
 1
 
+#---------------------------------------------------------------------------------------------
 #now we should test the permissions.py stuff
 >>> from rowperm.permissions import *
 >>> class GalleryPerm(BasePermission):
@@ -167,4 +167,68 @@ True
 >>> c.can('edit',moderator_gallery)
 False
 
+#--------------------------------------------------------------------------------
+
+>>> class CustomGalleryPerm(BasePermission):
+...     checks = ['custom_check_yes','custom_check_no','not_custom']
+...
+...     def custom_check_yes(self,*args,**kwargs):
+...         return True
+...
+...     def custom_check_no(self,*args,**kwargs):
+...         return False
+
+
+#creating the actions these will be created in initialization
+>>> custom_check_yes_action = Action(codename="custom_check_yes",for_model="gallery")
+>>> custom_check_no_action = Action(codename="custom_check_no",for_model="gallery")
+>>> not_custom_action = Action(codename="not_custom",for_model="gallery")
+>>> custom_check_yes_action.save()
+>>> custom_check_no_action.save()
+>>> not_custom_action.save()
+
+>>> custom_perm = CustomGalleryPerm(makkalot)
+>>> custom_perm.custom_check_yes()
+True
+
+>>> custom_perm.model = Gallery #that one will be set automatically when registering
+>>> custom_gallery = Gallery(name="custom_things")
+>>> custom_gallery.save()
+
+>>> row_perm3 = RowPermission(code = custom_check_yes_action,content_object = custom_gallery,approved = True)
+>>> row_perm3.save()
+>>> row_perm3.roles.add(moderator_role)
+
+>>> row_perm4 = RowPermission(code = custom_check_no_action,content_object = custom_gallery,approved = True)
+>>> row_perm4.save()
+>>> row_perm4.roles.add(moderator_role)
+
+>>> row_perm5 = RowPermission(code = not_custom_action,content_object = custom_gallery,approved = True)
+>>> row_perm5.save()
+>>> row_perm5.roles.add(moderator_role)
+
+
+
+>>> custom_perm.has_user_perms('custom_check_yes',custom_gallery)
+[<RowPermission: custom_check_yes-gallery>]
+>>> custom_perm.has_perm('custom_check_yes',custom_gallery)
+True
+>>> custom_perm.can('custom_check_yes',custom_gallery)
+True
+
+>>> custom_perm.has_user_perms('custom_check_no',custom_gallery)
+[<RowPermission: custom_check_no-gallery>]
+>>> custom_perm.has_perm('custom_check_no',custom_gallery)
+True
+>>> custom_perm.can('custom_check_no',custom_gallery)
+False
+
+>>> custom_perm.has_user_perms('not_custom',custom_gallery)
+[<RowPermission: not_custom-gallery>]
+>>> custom_perm.has_perm('not_custom',custom_gallery)
+True
+>>> custom_perm.can('not_custom',custom_gallery)
+True
+
+#----------------------------------------------------------------------------------------------------
 """
