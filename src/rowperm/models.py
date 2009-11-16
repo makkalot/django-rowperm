@@ -59,11 +59,12 @@ class Action(models.Model):
     Here we will define the actions that can be made on 
     objects,ex. moderate_comment and etc
     """
+    #the format is like action.model.appname
     codename = models.CharField(verbose_name=_('codename'), max_length=100,unique=True)
-    for_model = models.CharField(verbose_name=_('model'),max_length=200,help_text=_("The model you created that codename for, it maybe only for flatpages and so on"))
     
     def __unicode__(self):
-        return "Can %s for %s"%(self.codename,self.for_model)
+        codes = self.codename.split(".")
+        return "%s| %s | Can %s"%(codes[2],codes[1],codes[0])
 
 
 class RowPermission(models.Model):
@@ -80,14 +81,14 @@ class RowPermission(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
 
     creator = models.ForeignKey(User, null=True, blank=True, related_name='created_permissions')
-    approved = models.BooleanField(_('approved'), default=False, help_text=_("Designates whether the permission has been approved and treated as active. Unselect this instead of deleting permissions."))
+    approved = models.BooleanField(_('approved'), default=True, help_text=_("Designates whether the permission has been approved and treated as active. Unselect this instead of deleting permissions."))
     date_requested = models.DateTimeField(_('date requested'), default=datetime.now)
     date_approved = models.DateTimeField(_('date approved'), blank=True, null=True)
 
     objects = RowPermissionManager()
 
     def __unicode__(self):
-        return "%s-%s"%(self.code.codename,self.content_type)
+        return "%s-%s"%(self.code,self.content_type)
 
     class Meta:
         unique_together = ("code","object_id", "content_type")
