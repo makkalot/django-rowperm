@@ -1,5 +1,9 @@
 """
+
+>>> def generate_code_name(code,model):return "%s.%s.%s"%(code.lower(),model._meta.module_name,model._meta.app_label)
+
 >>> import rowperm.models
+>>> from myrow.gallery.models import *
 
 >>> moderator_role = rowperm.models.Role(role_name="moderator",display_name="Moderator Role")
 >>> moderator_role.save()
@@ -29,14 +33,12 @@
 >>> rg
 <RoleItem: Publisher Role-group>
 
->>> view_action = Action(codename="view",for_model="gallery")
->>> edit_action = Action(codename="edit",for_model="gallery")
+>>> view_action = Action(codename=generate_code_name("view",Gallery))
+>>> edit_action = Action(codename=generate_code_name("edit",Gallery))
 >>> view_action.save()
 >>> edit_action.save()
 >>> view_action
-<Action: Can view for gallery>
-
->>> from myrow.gallery.models import Gallery
+<Action: gallery| gallery | Can view>
 >>> gallery = Gallery(name="important")
 >>> gallery.save()
 >>> row_perm = RowPermission(code = view_action,content_object = gallery,approved = True)
@@ -60,11 +62,12 @@
 [<RoleItem: Publisher Role-group>]
 
 >>> RowPermission.objects.for_object(gallery)
-[<RowPermission: view-gallery>]
+[<RowPermission: gallery| gallery | Can view-gallery>]
 
->>> RowPermission.objects.get_perms_for_user(gallery,makkalot,"view")
-[<RowPermission: view-gallery>]
->>> RowPermission.objects.get_perms_for_group(gallery,publisher_group,"view")
+>>> RowPermission.objects.get_perms_for_user(gallery,makkalot,generate_code_name("view",Gallery))
+[<RowPermission: gallery| gallery | Can view-gallery>]
+
+>>> RowPermission.objects.get_perms_for_group(gallery,publisher_group,generate_code_name("view",Gallery))
 []
 
 
@@ -78,20 +81,20 @@
 >>> row_perm.roles.add(publisher_role)
 
 #when check for makkalot it should return empty
->>> RowPermission.objects.get_perms_for_user(gallery2,makkalot,"edit")
+>>> RowPermission.objects.get_perms_for_user(gallery2,makkalot,generate_code_name("edit",Gallery))
 []
 
->>> RowPermission.objects.get_perms_for_group(gallery2,publisher_group,"edit")
-[<RowPermission: edit-gallery>]
+>>> RowPermission.objects.get_perms_for_group(gallery2,publisher_group,generate_code_name("edit",Gallery))
+[<RowPermission: gallery| gallery | Can edit-gallery>]
 
 #now we will add the makkalot to publisher group and it should return True
 >>> makkalot.groups.add(publisher_group)
->>> RowPermission.objects.get_perms_for_user_group(gallery2,makkalot,"edit")
-[<RowPermission: edit-gallery>]
+>>> RowPermission.objects.get_perms_for_user_group(gallery2,makkalot,generate_code_name("edit",Gallery))
+[<RowPermission: gallery| gallery | Can edit-gallery>]
 
 #lets try for a user who is not in that group
 >>> fooman = User.objects.create_user("fooman","foo@foo.com","12345")
->>> RowPermission.objects.get_perms_for_user_group(gallery2,fooman,"edit")
+>>> RowPermission.objects.get_perms_for_user_group(gallery2,fooman,generate_code_name("edit",Gallery))
 []
 
 >>> res = RowPermission.objects.all()
@@ -116,7 +119,7 @@ True
 >>> row_perm2.roles.add(moderator_role)
 >>> c.model = Gallery #that one will be set automatically when registering
 >>> c.has_user_perms('edit',moderator_gallery)
-[<RowPermission: edit-gallery>]
+[<RowPermission: gallery| gallery | Can edit-gallery>]
 >>> c.has_perm('edit',moderator_gallery)
 True
 >>> c.can('edit',moderator_gallery)
@@ -161,7 +164,7 @@ False
 #now lets add the perm to that object so that group can do that action there
 >>> row_perm2.roles.add(publisher_role)
 >>> c.has_group_perms('edit',moderator_gallery)
-[<RowPermission: edit-gallery>]
+[<RowPermission: gallery| gallery | Can edit-gallery>]
 >>> c.has_perm('edit',moderator_gallery)
 True
 >>> c.can('edit',moderator_gallery)
@@ -180,9 +183,9 @@ False
 
 
 #creating the actions these will be created in initialization
->>> custom_check_yes_action = Action(codename="custom_check_yes",for_model="gallery")
->>> custom_check_no_action = Action(codename="custom_check_no",for_model="gallery")
->>> not_custom_action = Action(codename="not_custom",for_model="gallery")
+>>> custom_check_yes_action = Action(codename=generate_code_name("custom_check_yes",Gallery))
+>>> custom_check_no_action = Action(codename=generate_code_name("custom_check_no",Gallery))
+>>> not_custom_action = Action(codename=generate_code_name("not_custom",Gallery))
 >>> custom_check_yes_action.save()
 >>> custom_check_no_action.save()
 >>> not_custom_action.save()
@@ -210,21 +213,21 @@ True
 
 
 >>> custom_perm.has_user_perms('custom_check_yes',custom_gallery)
-[<RowPermission: custom_check_yes-gallery>]
+[<RowPermission: gallery| gallery | Can custom_check_yes-gallery>]
 >>> custom_perm.has_perm('custom_check_yes',custom_gallery)
 True
 >>> custom_perm.can('custom_check_yes',custom_gallery)
 True
 
 >>> custom_perm.has_user_perms('custom_check_no',custom_gallery)
-[<RowPermission: custom_check_no-gallery>]
+[<RowPermission: gallery| gallery | Can custom_check_no-gallery>]
 >>> custom_perm.has_perm('custom_check_no',custom_gallery)
 True
 >>> custom_perm.can('custom_check_no',custom_gallery)
 False
 
 >>> custom_perm.has_user_perms('not_custom',custom_gallery)
-[<RowPermission: not_custom-gallery>]
+[<RowPermission: gallery| gallery | Can not_custom-gallery>]
 >>> custom_perm.has_perm('not_custom',custom_gallery)
 True
 >>> custom_perm.can('not_custom',custom_gallery)
