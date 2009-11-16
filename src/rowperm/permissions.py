@@ -2,6 +2,7 @@ from django.db.models.base import Model, ModelBase
 from django.template.defaultfilters import slugify
 
 from rowperm.models import RowPermission
+import inspect 
 
 class PermissionMetaclass(type):
     """
@@ -94,5 +95,12 @@ class BasePermission(object):
             # then check authority's per object permissions
             if not isinstance(obj, ModelBase) and isinstance(obj, self._model):
                 perms = perms or self.has_perm(check.lower(), obj,check_groups=True)
-        
+                
+                # we should check if user added a method for custom checking
+                if perms and hasattr(self,check.lower()) and inspect.ismethod(getattr(self,check.lower())):
+                    if not getattr(self,check.lower())(*args,**kwargs):
+                        return False
+                    else:
+                        return True
         return perms
+
