@@ -41,11 +41,12 @@ class PermissionSite(object):
                 raise NotRegistered('The model %s is not registered' % model.__name__)
             del self._registry[model]
 
-    def get_registered(self):
+    def _get_registered(self):
         return self._registry
-    registered = property(get_registered)
+    registered = property(_get_registered)
 
 
 site = PermissionSite()
 register = site.register
 unregister = site.unregister
+registered = site.registered
