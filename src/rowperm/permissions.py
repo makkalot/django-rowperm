@@ -40,7 +40,10 @@ class BasePermission(object):
         self._model = model
 
     model = property(_get_model,_set_model)
-    
+   
+    def _generate_code_name(self,code):
+        return "%s.%s.%s"%(code.lower(),self._model._meta.module_name,self._model._meta.app_label)
+
     def has_user_perms(self, perm, obj, approved=True):
         if self.user:
             if self.user.is_superuser:
@@ -48,7 +51,7 @@ class BasePermission(object):
             if not self.user.is_active:
                 return False
             # check if a Permission object exists for the given params
-            return RowPermission.objects.get_perms_for_user(obj,self.user,perm,approved).filter(object_id=obj.id)
+            return RowPermission.objects.get_perms_for_user(obj,self.user,self._generate_code_name(perm),approved).filter(object_id=obj.id)
         return False
 
     def has_group_perms(self, perm, obj, approved=True):
@@ -56,7 +59,7 @@ class BasePermission(object):
         Check if group has the permission for the given object
         """
         if self.group:
-            perms = RowPermission.objects.get_perms_for_group(obj,self.group,perm,approved)
+            perms = RowPermission.objects.get_perms_for_group(obj,self.group,self._generate_code_name(perm),approved)
             return perms.filter(object_id=obj.id)
         return False
 
@@ -70,7 +73,7 @@ class BasePermission(object):
         #that one is for situations where you supply the user and want to
         #search its group to see if any of groups it belongs to is able todo that
             if check_groups:#should we look at groups user belongs to
-                if RowPermission.objects.get_perms_for_user_group(obj,self.user,perm,approved):
+                if RowPermission.objects.get_perms_for_user_group(obj,self.user,self._generate_code_name(perm),approved):
                     return True
         if self.group:
             if self.has_group_perms(perm, obj, approved):
