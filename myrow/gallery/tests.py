@@ -244,5 +244,29 @@ False
 >>> custom_perm.model = Gallery
 
 
+#Now lets test the registering thing
+#We have 2 classes so far here
+>>> custom_perm_class = CustomGalleryPerm
+>>> perm_class = GalleryPerm
+
+>>> from rowperm.sites import site,register,unregister,registered
+>>> registered
+{}
+>>> register(Gallery,CustomGalleryPerm)
+>>> register(Picture,CustomGalleryPerm)
+>>> registered
+{<class 'myrow.gallery.models.Picture'>: <class 'myrow.gallery.tests.CustomGalleryPerm'>, <class 'myrow.gallery.models.Gallery'>: <class 'myrow.gallery.tests.CustomGalleryPerm'>}
+>>> register(Gallery,CustomGalleryPerm)
+Traceback (most recent call last):
+...
+AlreadyRegistered: The model Gallery is already registered
+>>> unregister(Gallery)
+>>> registered
+{<class 'myrow.gallery.models.Picture'>: <class 'myrow.gallery.tests.CustomGalleryPerm'>}
+>>> import rowperm
+>>> rowperm.autodiscover()
+>>> registered
+{<class 'myrow.gallery.models.Picture'>: <class 'myrow.gallery.tests.CustomGalleryPerm'>, <class 'myrow.gallery.models.Gallery'>: <class 'myrow.gallery.permissions.MyPerm'>}
+
 #----------------------------------------------------------------------------------------------------
 """
